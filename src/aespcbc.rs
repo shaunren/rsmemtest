@@ -1,5 +1,5 @@
 use std::arch::x86_64::*;
-use std::mem;
+use std::mem::MaybeUninit;
 
 #[derive(Copy, Clone)]
 pub struct Aes128Pcbc {
@@ -33,8 +33,8 @@ macro_rules! expand_round {
 #[inline(always)]
 fn expand(key: &__m128i) -> ([__m128i; 6], [__m128i; 6]) {
     unsafe {
-        let mut enc_keys: [__m128i; 6] = mem::uninitialized();
-        let mut dec_keys: [__m128i; 6] = mem::uninitialized();
+        let mut enc_keys: [__m128i; 6] = MaybeUninit::uninit().assume_init();
+        let mut dec_keys: [__m128i; 6] = MaybeUninit::uninit().assume_init();
 
         enc_keys[0] = *key;
         dec_keys[0] = *key;

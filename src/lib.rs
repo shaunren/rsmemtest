@@ -13,7 +13,7 @@ use std::arch::x86_64::*;
 
 mod aespcbc;
 use aespcbc::Aes128Pcbc;
-use crossbeam::Sender;
+use crossbeam::channel::Sender;
 
 
 #[repr(align(4096))]
@@ -27,7 +27,7 @@ pub enum TesterMessage {
 
 #[inline(always)]
 fn flush_cache<T: Sized>(vaddr: *mut T, len: usize) {
-    let CLFLUSH_CACHE_LINE_SIZE = 64;
+    const CLFLUSH_CACHE_LINE_SIZE: usize = 64;
 
     let vaddr_u8 = vaddr as *mut u8;
     let raw_len = len * size_of::<T>();
@@ -78,11 +78,11 @@ pub fn test_thread(blocks: &mut [TestBlock], tx: Sender<TesterMessage>) {
     let mut rng = rand::thread_rng();
     let num_bytes = blocks.len() * size_of::<TestBlock>();
 
-    let NUM_TEST_ITERS = 4;
+    const NUM_TEST_ITERS: usize = 4;
 
     loop {
-        let keys: Vec<__m128i> = rng.sample_iter(rand::distributions::Standard).take(NUM_TEST_ITERS).collect();
-        let mut nonces: Vec<__m128i> = vec![rng.sample(rand::distributions::Standard)];
+        let keys: Vec<__m128i> = (&mut rng).sample_iter(rand::distributions::Standard).take(NUM_TEST_ITERS).collect();
+        let mut nonces: Vec<__m128i> = vec![(&mut rng).sample(rand::distributions::Standard)];
 
         for key in &keys {
             let nonce = test_encrypt_round(blocks, key, nonces.last().unwrap());

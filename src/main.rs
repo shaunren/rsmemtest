@@ -39,7 +39,7 @@ fn main() {
     opts.optopt("t", "", "threads", "number of threads");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()) }
+        Err(f) => { panic!("{}", f.to_string()) }
     };
     if matches.opt_present("h") || !matches.opt_present("m") {
         print_usage(&program, opts);
@@ -65,7 +65,7 @@ fn main() {
     pb.show_time_left = false;
     pb.message(&format_error_message(0));
 
-    let (tx, rx) = crossbeam::unbounded();
+    let (tx, rx) = crossbeam::channel::unbounded();
 
     crossbeam::scope(|scope| {
         for blocks in test_buffer.chunks_mut(num_blocks / num_threads) {
